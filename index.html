@@ -1,1 +1,827 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Balance Calculate</title><link rel="manifest" href="./manifest.webmanifest"><meta name="theme-color" content="#171124"><link rel="icon" href="./icon.svg"><style>body{margin:0;background:#09070d;color:#fff;font-family:Arial;text-align:center}.wrap{max-width:480px;margin:auto;padding:40px 20px}.logo{font-size:70px}.card{background:#19151f;border:1px solid #392d45;border-radius:20px;padding:24px;margin:16px 0}h1{color:#c276ff}button{background:#9a58ef;color:white;border:0;border-radius:14px;padding:15px 25px;font-weight:bold}</style></head><body><div class="wrap"><div class="logo">🪙</div><h1>Balance Calculate</h1><p>Buy • Use • Enjoy</p><div class="card"><h2>Gold Coins</h2><p style="font-size:30px;color:#f6c945">🪙 0 Coins</p><button onclick="alert('Demo only — real purchases will be added with Google Play Billing.')">Open Shop</button></div><p>This is the PWA installation version of the app.</p></div><script>if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js');</script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Balance Calculate</title>
+
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+    background:#101010;
+    color:#fff;
+    min-height:100vh;
+}
+
+.container{
+    width:100%;
+    max-width:520px;
+    margin:auto;
+    padding:25px 18px 50px;
+}
+
+.hidden{
+    display:none!important;
+}
+
+.logo{
+    width:75px;
+    height:75px;
+    border-radius:50%;
+    margin:25px auto 15px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:linear-gradient(135deg,#ffd700,#b8860b);
+    font-size:40px;
+    box-shadow:0 0 25px rgba(255,215,0,.25);
+}
+
+h1{
+    text-align:center;
+    color:#bb7cff;
+    font-size:34px;
+    margin-bottom:30px;
+}
+
+h2{
+    color:#bb7cff;
+    margin-bottom:20px;
+}
+
+.input{
+    width:100%;
+    height:58px;
+    background:#171717;
+    border:1px solid #292929;
+    border-radius:12px;
+    color:#fff;
+    padding:0 18px;
+    font-size:17px;
+    margin-bottom:15px;
+    outline:none;
+}
+
+.input:focus{
+    border-color:#bb7cff;
+}
+
+.btn{
+    width:100%;
+    height:58px;
+    border:0;
+    border-radius:30px;
+    background:linear-gradient(90deg,#b36cff,#c58cff);
+    color:#111;
+    font-size:18px;
+    font-weight:bold;
+    margin-top:8px;
+    cursor:pointer;
+}
+
+.btn:active{
+    transform:scale(.98);
+}
+
+.link{
+    color:#bb7cff;
+    text-align:center;
+    margin-top:22px;
+    cursor:pointer;
+    font-size:16px;
+}
+
+.error{
+    color:#ff7070;
+    text-align:center;
+    margin:12px 0;
+    min-height:20px;
+}
+
+.success{
+    color:#70e090;
+    text-align:center;
+    margin:12px 0;
+}
+
+.header{
+    text-align:center;
+    padding-top:20px;
+}
+
+.email{
+    font-size:20px;
+    font-weight:bold;
+    word-break:break-all;
+    margin-top:15px;
+}
+
+.balance{
+    color:#bb7cff;
+    font-size:25px;
+    margin:15px 0 25px;
+    font-weight:bold;
+}
+
+.card{
+    background:#1e1e1e;
+    border-radius:10px;
+    padding:20px;
+    margin:14px 0;
+    border:1px solid #292929;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+}
+
+.card-left h3{
+    font-size:21px;
+    margin-bottom:8px;
+}
+
+.card-left p{
+    color:#888;
+    font-size:16px;
+}
+
+.price{
+    color:#bb7cff;
+    font-size:23px;
+    font-weight:bold;
+}
+
+.buy-btn{
+    margin-top:12px;
+    width:100%;
+    height:45px;
+    border:0;
+    border-radius:23px;
+    background:#bb7cff;
+    color:#111;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.logout{
+    background:#ff4141;
+    color:white;
+    margin-top:25px;
+}
+
+.small{
+    text-align:center;
+    color:#777;
+    font-size:13px;
+    margin-top:25px;
+    line-height:1.5;
+}
+
+.loading{
+    text-align:center;
+    color:#bb7cff;
+    margin-top:40px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<!-- LOGIN -->
+<div id="loginPage">
+
+    <div class="logo">🪙</div>
+
+    <h1>Balance Calculate</h1>
+
+    <input
+        id="loginEmail"
+        class="input"
+        type="email"
+        placeholder="Email"
+    >
+
+    <input
+        id="loginPassword"
+        class="input"
+        type="password"
+        placeholder="Password"
+    >
+
+    <div id="loginError" class="error"></div>
+
+    <button class="btn" onclick="loginUser()">Login</button>
+
+    <div class="link" onclick="showRegister()">
+        Don't have an account? Register
+    </div>
+
+    <div class="link" onclick="resetPassword()">
+        Forgot Password?
+    </div>
+</div>
+
+
+<!-- REGISTER -->
+<div id="registerPage" class="hidden">
+
+    <div class="logo">🪙</div>
+
+    <h1>Create Account</h1>
+
+    <input
+        id="registerName"
+        class="input"
+        type="text"
+        placeholder="Full Name"
+    >
+
+    <input
+        id="registerEmail"
+        class="input"
+        type="email"
+        placeholder="Email"
+    >
+
+    <input
+        id="registerPassword"
+        class="input"
+        type="password"
+        placeholder="Password (minimum 6 characters)"
+    >
+
+    <div id="registerError" class="error"></div>
+
+    <button class="btn" onclick="registerUser()">Register</button>
+
+    <div class="link" onclick="showLogin()">
+        Already have an account? Login
+    </div>
+</div>
+
+
+<!-- HOME -->
+<div id="homePage" class="hidden">
+
+    <div class="header">
+
+        <div class="logo">🪙</div>
+
+        <div id="userEmail" class="email"></div>
+
+        <div id="balance" class="balance">
+            Gold Coins: 0
+        </div>
+
+    </div>
+
+    <button class="btn" onclick="showShop()">
+        🛒 Buy Gold Coins
+    </button>
+
+    <button class="btn logout" onclick="logoutUser()">
+        Logout
+    </button>
+
+    <p class="small">
+        Balance Calculate<br>
+        Your Gold Coin Account
+    </p>
+
+</div>
+
+
+<!-- SHOP -->
+<div id="shopPage" class="hidden">
+
+    <h1>Gold Coin Shop</h1>
+
+    <div id="shopBalance" class="balance">
+        Current Balance: 0 Coins
+    </div>
+
+    <div id="packages"></div>
+
+    <button class="btn" onclick="showHome()">
+        ← Back
+    </button>
+
+    <p class="small">
+        Payment gateway is not connected yet.<br>
+        Google Play Balance cannot be directly charged
+        by this web app.
+    </p>
+
+</div>
+
+
+<div id="loading" class="loading hidden">
+    Loading...
+</div>
+
+</div>
+
+
+<!-- FIREBASE -->
+<script type="module">
+
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+    getAuth,
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    sendPasswordResetEmail,
+    signOut,
+    onAuthStateChanged,
+    updateProfile
+}
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+import {
+    getDatabase,
+    ref,
+    set,
+    get,
+    push
+}
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+
+/* FIREBASE CONFIG */
+
+const firebaseConfig = {
+    apiKey: "AIzaSyAYnd7gn6gbYui1IEPDb67jEjADyuoTCsM",
+    authDomain: "balance-calculate.firebaseapp.com",
+    databaseURL: "https://balance-calculate-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "balance-calculate",
+    storageBucket: "balance-calculate.firebasestorage.app",
+    messagingSenderId: "446481480493",
+    appId: "1:446481480493:web:042e1659a3c28486e771a4",
+    measurementId: "G-DHJTN34J3M"
+};
+
+
+/* INITIALIZE */
+
+const app = initializeApp(firebaseConfig);
+
+const auth = getAuth(app);
+
+const db = getDatabase(app);
+
+
+/* COIN PACKAGES */
+
+const packages = [
+    {coins:200, price:"$2.00"},
+    {coins:200, price:"$2.01"},
+
+    {coins:100, price:"$1.00"},
+    {coins:100, price:"$1.01"},
+
+    {coins:300, price:"$3.00"},
+    {coins:300, price:"$3.01"},
+
+    {coins:400, price:"$4.00"},
+    {coins:400, price:"$4.01"},
+
+    {coins:500, price:"$5.00"},
+    {coins:500, price:"$5.01"}
+];
+
+
+/* PAGE FUNCTIONS */
+
+window.showRegister = function(){
+
+    document.getElementById("loginPage")
+        .classList.add("hidden");
+
+    document.getElementById("registerPage")
+        .classList.remove("hidden");
+
+};
+
+
+window.showLogin = function(){
+
+    document.getElementById("registerPage")
+        .classList.add("hidden");
+
+    document.getElementById("loginPage")
+        .classList.remove("hidden");
+
+};
+
+
+window.showHome = function(){
+
+    document.getElementById("loginPage")
+        .classList.add("hidden");
+
+    document.getElementById("registerPage")
+        .classList.add("hidden");
+
+    document.getElementById("shopPage")
+        .classList.add("hidden");
+
+    document.getElementById("homePage")
+        .classList.remove("hidden");
+
+};
+
+
+window.showShop = function(){
+
+    document.getElementById("homePage")
+        .classList.add("hidden");
+
+    document.getElementById("shopPage")
+        .classList.remove("hidden");
+
+    loadPackages();
+
+};
+
+
+/* REGISTER */
+
+window.registerUser = async function(){
+
+    const name =
+        document.getElementById("registerName").value.trim();
+
+    const email =
+        document.getElementById("registerEmail").value.trim();
+
+    const password =
+        document.getElementById("registerPassword").value;
+
+    const error =
+        document.getElementById("registerError");
+
+    error.innerText = "";
+
+    if(!name || !email || !password){
+
+        error.innerText = "Please fill all fields.";
+
+        return;
+    }
+
+    if(password.length < 6){
+
+        error.innerText =
+            "Password must be at least 6 characters.";
+
+        return;
+    }
+
+    try{
+
+        const userCredential =
+            await createUserWithEmailAndPassword(
+                auth,
+                email,
+                password
+            );
+
+        const user = userCredential.user;
+
+
+        await updateProfile(user,{
+            displayName:name
+        });
+
+
+        await set(
+            ref(db,"users/"+user.uid),
+            {
+                name:name,
+                email:email,
+                coins:0,
+                createdAt:Date.now()
+            }
+        );
+
+
+        alert("Account created successfully!");
+
+        showHome();
+
+    }catch(e){
+
+        error.innerText =
+            getFirebaseError(e);
+
+    }
+
+};
+
+
+/* LOGIN */
+
+window.loginUser = async function(){
+
+    const email =
+        document.getElementById("loginEmail").value.trim();
+
+    const password =
+        document.getElementById("loginPassword").value;
+
+    const error =
+        document.getElementById("loginError");
+
+    error.innerText = "";
+
+    if(!email || !password){
+
+        error.innerText =
+            "Please enter email and password.";
+
+        return;
+    }
+
+    try{
+
+        await signInWithEmailAndPassword(
+            auth,
+            email,
+            password
+        );
+
+    }catch(e){
+
+        error.innerText =
+            getFirebaseError(e);
+
+    }
+
+};
+
+
+/* PASSWORD RESET */
+
+window.resetPassword = async function(){
+
+    const email =
+        document.getElementById("loginEmail").value.trim();
+
+    if(!email){
+
+        alert("First enter your email address.");
+
+        return;
+    }
+
+    try{
+
+        await sendPasswordResetEmail(
+            auth,
+            email
+        );
+
+        alert(
+            "Password reset email has been sent."
+        );
+
+    }catch(e){
+
+        alert(getFirebaseError(e));
+
+    }
+
+};
+
+
+/* LOGOUT */
+
+window.logoutUser = async function(){
+
+    await signOut(auth);
+
+    showLogin();
+
+};
+
+
+/* LOAD USER */
+
+async function loadUser(user){
+
+    document.getElementById("userEmail")
+        .innerText = user.email;
+
+
+    const userRef =
+        ref(db,"users/"+user.uid);
+
+    const snapshot =
+        await get(userRef);
+
+
+    if(snapshot.exists()){
+
+        const data = snapshot.val();
+
+        const coins =
+            Number(data.coins || 0);
+
+        updateBalance(coins);
+
+    }else{
+
+        await set(
+            userRef,
+            {
+                name:user.displayName || "",
+                email:user.email,
+                coins:0,
+                createdAt:Date.now()
+            }
+        );
+
+        updateBalance(0);
+
+    }
+
+}
+
+
+/* UPDATE BALANCE */
+
+function updateBalance(coins){
+
+    document.getElementById("balance")
+        .innerText =
+        "🪙 Gold Coins: " + coins;
+
+    document.getElementById("shopBalance")
+        .innerText =
+        "Current Balance: " + coins + " Coins";
+
+}
+
+
+/* SHOP */
+
+function loadPackages(){
+
+    const container =
+        document.getElementById("packages");
+
+    container.innerHTML = "";
+
+
+    packages.forEach((item,index)=>{
+
+        const card =
+            document.createElement("div");
+
+        card.className = "card";
+
+        card.innerHTML = `
+
+            <div class="card-left">
+
+                <h3>🪙 ${item.coins} Gold Coins</h3>
+
+                <p>${item.coins} Coins</p>
+
+            </div>
+
+            <div>
+
+                <div class="price">
+                    ${item.price}
+                </div>
+
+                <button
+                    class="buy-btn"
+                    onclick="requestPurchase(${index})">
+
+                    Buy
+
+                </button>
+
+            </div>
+        `;
+
+        container.appendChild(card);
+
+    });
+
+}
+
+
+/* PURCHASE REQUEST */
+
+window.requestPurchase = async function(index){
+
+    const user = auth.currentUser;
+
+    if(!user){
+
+        alert("Please login first.");
+
+        return;
+
+    }
+
+    const item = packages[index];
+
+
+    /*
+       This only creates a purchase request.
+       It does NOT charge Google Play Balance
+       or a bank/virtual card.
+    */
+
+    const purchaseRef =
+        push(ref(db,"purchaseRequests/"+user.uid));
+
+
+    await set(
+        purchaseRef,
+        {
+            userId:user.uid,
+            email:user.email,
+            coins:item.coins,
+            price:item.price,
+            status:"pending",
+            createdAt:Date.now()
+        }
+    );
+
+
+    alert(
+        "Purchase request created.\n\n" +
+        item.coins +
+        " Gold Coins - " +
+        item.price +
+        "\n\nPayment gateway is not connected yet."
+    );
+
+};
+
+
+/* AUTH STATE */
+
+onAuthStateChanged(auth,async(user)=>{
+
+    if(user){
+
+        await loadUser(user);
+
+        showHome();
+
+    }else{
+
+        showLogin();
+
+    }
+
+});
+
+
+/* FIREBASE ERROR TEXT */
+
+function getFirebaseError(error){
+
+    const code = error.code || "";
+
+    if(code.includes("email-already-in-use"))
+        return "This email is already registered.";
+
+    if(code.includes("invalid-email"))
+        return "Invalid email address.";
+
+    if(code.includes("weak-password"))
+        return "Password is too weak.";
+
+    if(code.includes("invalid-credential"))
+        return "Email or password is incorrect.";
+
+    if(code.includes("user-not-found"))
+        return "User not found.";
+
+    if(code.includes("wrong-password"))
+        return "Wrong password.";
+
+    return error.message || "Something went wrong.";
+
+}
+
+</script>
+
+</body>
+</html>
